@@ -1,0 +1,59 @@
+name: Validate repository structure
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate-docs:
+    name: Check /docs planning deliverables
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Confirm /docs folder exists
+        run: |
+          if [ ! -d "docs" ]; then
+            echo "::error::Missing required 'docs' folder."
+            exit 1
+          fi
+          echo "docs/ folder found."
+
+      - name: Confirm ERD image is present
+        run: |
+          if ! ls docs/*.png docs/*.pdf >/dev/null 2>&1; then
+            echo "::error::No ERD image found in docs/ (expected a .png or .pdf)."
+            exit 1
+          fi
+          echo "ERD image found."
+
+      - name: Confirm endpoint plan is present
+        run: |
+          if ! ls docs/*endpoint*.md docs/*endpoint*.pdf >/dev/null 2>&1; then
+            echo "::error::No endpoint plan found in docs/ (expected a file with 'endpoint' in its name, .md or .pdf)."
+            exit 1
+          fi
+          echo "Endpoint plan found."
+
+      - name: Confirm SQL script is present
+        run: |
+          if ! ls docs/*.sql >/dev/null 2>&1; then
+            echo "::error::No .sql script found in docs/."
+            exit 1
+          fi
+          echo "SQL script found."
+
+      - name: Confirm README exists at repository root
+        run: |
+          if [ ! -f "README.md" ]; then
+            echo "::error::Missing README.md at the repository root."
+            exit 1
+          fi
+          echo "README.md found."
+
+      - name: Summary
+        run: echo "All required Part 1 planning deliverables are present."
