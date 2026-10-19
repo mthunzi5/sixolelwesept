@@ -39,7 +39,7 @@ public class SessionAuthorizeAttribute : Attribute, IAuthorizationFilter
         if (Roles.Length > 0 && !Roles.Contains(role))
         {
             context.Result = Problem(StatusCodes.Status403Forbidden, "Forbidden",
-                $"This endpoint is only available to the {string.Join(" / ", Roles)} role. You are logged in as a {role}.");
+                $"This endpoint is only available to the {string.Join(" / ", Roles)} role. You are logged in as {(role == UserRole.Organiser ? "an" : "a")} {role}.");
         }
     }
 
