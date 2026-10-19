@@ -131,7 +131,7 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task Logout_ClearsSession()
+    public void Logout_ClearsSession()
     {
         using var db = TestData.NewDb();
         var user = TestData.AddUser(db, UserRole.Participant);
