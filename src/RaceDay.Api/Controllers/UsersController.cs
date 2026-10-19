@@ -53,11 +53,11 @@ public class UsersController : ApiControllerBase
     }
 
     /// <summary>Change the logged-in user's password.</summary>
-    /// <response code="204">Password changed.</response>
+    /// <response code="200">Password changed.</response>
     /// <response code="400">The new password is too short or the same as the current one.</response>
     /// <response code="401">Not logged in, or the current password is wrong.</response>
     [HttpPut("me/password")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
@@ -80,7 +80,7 @@ public class UsersController : ApiControllerBase
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         await _db.SaveChangesAsync();
-        return NoContent();
+        return Ok(new { message = "Password changed." });
     }
 
     /// <summary>Get another user's public profile (name and role only).</summary>
