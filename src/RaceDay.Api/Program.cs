@@ -10,6 +10,18 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+// Apply any pending migrations and load sample data on startup, so a fresh clone only
+// needs `dotnet run`. Skipped for the in-memory database the tests use.
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<RaceDayDbContext>();
+    if (db.Database.IsRelational())
+    {
+        db.Database.Migrate();
+        DbSeeder.Seed(db);
+    }
+}
+
 app.UseHttpsRedirection();
 app.MapControllers();
 
