@@ -1,6 +1,9 @@
+using System.Reflection;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using RaceDay.Api.Data;
+using RaceDay.Api.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +27,27 @@ builder.Services.AddControllers()
         // Enums travel as their names ("Organiser", "Run") rather than numbers.
         o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false)));
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "RaceDay API",
+        Version = "v1",
+        Description =
+            "RESTful API for the RaceDay event management system.\n\n" +
+            "**How to test protected endpoints:** call `POST /api/auth/login`. The response sets a session cookie " +
+            "that the browser sends automatically, so every later request in this page runs as that user. " +
+            "Call `POST /api/auth/logout` to switch accounts.\n\n" +
+            "Seeded accounts (password `Password123!`): Organisers `naledi.khumalo@raceday.co.za`, " +
+            "`sipho.dlamini@raceday.co.za`. Participants `amahle.nkosi@example.com`, `jason.vanwyk@example.com`, " +
+            "`palesa.mokoena@example.com`, `ryan.govender@example.com`."
+    });
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
+    options.OperationFilter<SessionAuthOperationFilter>();
+    options.SupportNonNullableReferenceTypes();
+});
+
 var app = builder.Build();
 
 // Apply any pending migrations and load sample data on startup, so a fresh clone only
@@ -37,6 +61,15 @@ using (var scope = app.Services.CreateScope())
         DbSeeder.Seed(db);
     }
 }
+
+// Swagger is left on in every environment because it is how the API is demonstrated and tested.
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "RaceDay API v1");
+    options.DocumentTitle = "RaceDay API";
+    options.DisplayRequestDuration();
+});
 
 app.UseHttpsRedirection();
 app.UseSession();
