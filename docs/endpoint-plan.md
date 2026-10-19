@@ -47,3 +47,7 @@ Conventions used throughout this table:
 ## Notes on deviations
 
 Anything the implemented API in Part 2 ends up doing differently from this table (route naming, an endpoint split in two, an extra filter param, etc.) will be explained in the main `README.md`, per the Section B requirement that unexplained deviations affect the mark.
+
+**Part 2 update:** the implemented API is on the `part2-api` branch. Every difference from this plan
+(JWT replaced by session authentication, added event and category fields, and three extra endpoints) is
+listed with its reason in the README section "Differences from the Part 1 plan".
