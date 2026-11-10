@@ -1,0 +1,15 @@
+@model PageHeader
+@* Consistent page heading used across every page. *@
+<div class="rd-page-header">
+    <h1 class="rd-page-title">
+        @if (Model.Icon is not null)
+        {
+            <i class="bi @Model.Icon"></i>
+        }
+        @Model.Title
+    </h1>
+    @if (Model.Subtitle is not null)
+    {
+        <p class="rd-page-subtitle">@Model.Subtitle</p>
+    }
+</div>

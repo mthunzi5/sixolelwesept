@@ -1,0 +1,22 @@
+@* Flash messages set by controllers (TempData), shown the same way on every page. *@
+@if (TempData["Success"] is string success)
+{
+    <div class="alert rd-alert rd-alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @success
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert rd-alert rd-alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i> @error
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Info"] is string info)
+{
+    <div class="alert rd-alert rd-alert-info alert-dismissible fade show" role="alert">
+        <i class="bi bi-info-circle-fill"></i> @info
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}

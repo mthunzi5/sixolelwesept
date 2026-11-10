@@ -57,3 +57,6 @@ public class ProfileViewModel
     public ProfileForm Profile { get; set; } = new();
     public ChangePasswordForm Password { get; set; } = new();
 }
+
+/// <summary>Title block shown at the top of every page (Views/Shared/_PageHeader.cshtml).</summary>
+public record PageHeader(string Title, string? Subtitle = null, string? Icon = null);
