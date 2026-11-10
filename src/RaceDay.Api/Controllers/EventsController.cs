@@ -29,7 +29,7 @@ public class EventsController : ApiControllerBase
         [FromQuery] EventStatus? status, [FromQuery] EventType? eventType,
         [FromQuery] DateOnly? from, [FromQuery] DateOnly? to)
     {
-        var query = _db.Events.Include(e => e.Organiser).AsQueryable();
+        var query = _db.Events.Include(e => e.Organiser).Include(e => e.Categories).ThenInclude(c => c.Enrolments).AsQueryable();
 
         if (status is not null) query = query.Where(e => e.Status == status);
         if (eventType is not null) query = query.Where(e => e.EventType == eventType);
@@ -65,7 +65,7 @@ public class EventsController : ApiControllerBase
     [ProducesResponseType(typeof(List<EventDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMyEvents()
     {
-        var events = await _db.Events.Include(e => e.Organiser)
+        var events = await _db.Events.Include(e => e.Organiser).Include(e => e.Categories).ThenInclude(c => c.Enrolments)
             .Where(e => e.OrganiserId == CurrentUserId)
             .OrderBy(e => e.EventDate)
             .ToListAsync();
@@ -122,7 +122,7 @@ public class EventsController : ApiControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateEvent(int id, EventRequest request)
     {
-        var ev = await _db.Events.Include(e => e.Organiser).SingleOrDefaultAsync(e => e.EventId == id);
+        var ev = await _db.Events.Include(e => e.Organiser).Include(e => e.Categories).ThenInclude(c => c.Enrolments).SingleOrDefaultAsync(e => e.EventId == id);
         if (ev is null) return NotFoundProblem($"Event {id} was not found.");
         if (ev.OrganiserId != CurrentUserId) return ForbiddenProblem("You can only update events you created.");
 
@@ -184,6 +184,8 @@ public class EventsController : ApiControllerBase
 
         var enrolments = await _db.Enrolments
             .Include(en => en.Participant)
+            .Include(en => en.Result)
+            .Include(en => en.Payment)
             .Include(en => en.Category).ThenInclude(c => c!.Event)
             .Where(en => en.Category!.EventId == id)
             .OrderBy(en => en.Category!.CategoryName).ThenBy(en => en.BibNumber)

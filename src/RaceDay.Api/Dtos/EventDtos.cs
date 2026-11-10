@@ -16,7 +16,11 @@ public class EventDto
     public decimal DistanceKm { get; set; }
     public EventType EventType { get; set; }
     public EventStatus Status { get; set; }
+    /// <summary>API path of the banner image stored in Azure Blob Storage, or null if none has been uploaded.</summary>
     public string? BannerImageUrl { get; set; }
+
+    /// <summary>Number of active (non-withdrawn) enrolments across all of the event's categories.</summary>
+    public int EnrolmentCount { get; set; }
 }
 
 /// <summary>An event together with its categories.</summary>
