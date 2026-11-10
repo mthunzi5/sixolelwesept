@@ -45,6 +45,7 @@ public static class Mappings
         dto.EventType = e.EventType;
         dto.Status = e.Status;
         dto.BannerImageUrl = e.BannerImageUrl;
+        dto.EnrolmentCount = e.Categories.SelectMany(c => c.Enrolments).Count(en => en.Status != EnrolmentStatus.Withdrawn);
         return dto;
     }
 
@@ -69,11 +70,18 @@ public static class Mappings
         ParticipantName = en.Participant?.FullName ?? string.Empty,
         EventId = en.Category?.EventId ?? 0,
         EventName = en.Category?.Event?.EventName ?? string.Empty,
+        EventDate = en.Category?.Event?.EventDate,
         CategoryId = en.CategoryId,
         CategoryName = en.Category?.CategoryName ?? string.Empty,
+        EntryFee = en.Category?.EntryFee ?? 0,
         BibNumber = en.BibNumber,
         EnrolmentDate = en.EnrolmentDate,
-        Status = en.Status
+        Status = en.Status,
+        PaymentStatus = en.Payment?.Status,
+        ResultId = en.Result?.ResultId,
+        FinishTimeSeconds = en.Result?.FinishTimeSeconds,
+        Position = en.Result?.Position,
+        ResultStatus = en.Result?.Status
     };
 
     public static ResultDto ToDto(this Result r) => new()
@@ -84,6 +92,7 @@ public static class Mappings
         ParticipantName = r.Enrolment?.Participant?.FullName ?? string.Empty,
         EventId = r.Enrolment?.Category?.EventId ?? 0,
         EventName = r.Enrolment?.Category?.Event?.EventName ?? string.Empty,
+        EventDate = r.Enrolment?.Category?.Event?.EventDate,
         CategoryId = r.Enrolment?.CategoryId ?? 0,
         CategoryName = r.Enrolment?.Category?.CategoryName ?? string.Empty,
         BibNumber = r.Enrolment?.BibNumber ?? string.Empty,

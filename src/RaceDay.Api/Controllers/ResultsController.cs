@@ -31,7 +31,7 @@ public class ResultsController : ApiControllerBase
         }
 
         var results = await Query().Where(r => r.Enrolment!.Category!.EventId == eventId).ToListAsync();
-        return Ok(Rank(results).Select(r => r.ToDto()));
+        return Ok(await ToDtosAsync(Rank(results)));
     }
 
     /// <summary>List the logged-in Participant's own results across all events.</summary>
@@ -47,7 +47,7 @@ public class ResultsController : ApiControllerBase
             .Where(r => r.Enrolment!.ParticipantId == CurrentUserId)
             .OrderByDescending(r => r.Enrolment!.Category!.Event!.EventDate)
             .ToListAsync();
-        return Ok(results.Select(r => r.ToDto()));
+        return Ok(await ToDtosAsync(results));
     }
 
     /// <summary>Capture the finish time and position for an enrolment. Only the Organiser of the event may do this.</summary>
@@ -95,7 +95,7 @@ public class ResultsController : ApiControllerBase
         await _db.SaveChangesAsync();
 
         var saved = await Query().SingleAsync(r => r.ResultId == result.ResultId);
-        return Created($"/api/results/{result.ResultId}", saved.ToDto());
+        return Created($"/api/results/{result.ResultId}", (await ToDtosAsync([saved])).Single());
     }
 
     /// <summary>Correct a result that has already been captured. Only the Organiser of the event may do this.</summary>
@@ -125,12 +125,31 @@ public class ResultsController : ApiControllerBase
 
         Apply(result, request);
         await _db.SaveChangesAsync();
-        return Ok(result.ToDto());
+        return Ok((await ToDtosAsync([result])).Single());
     }
 
     private IQueryable<Result> Query() => _db.Results
         .Include(r => r.Enrolment).ThenInclude(en => en!.Participant)
         .Include(r => r.Enrolment).ThenInclude(en => en!.Category).ThenInclude(c => c!.Event);
+
+    /// <summary>Maps results to DTOs and fills in how many Finished results each one's category has.</summary>
+    private async Task<List<ResultDto>> ToDtosAsync(IEnumerable<Result> results)
+    {
+        var list = results.ToList();
+        var categoryIds = list.Select(r => r.Enrolment!.CategoryId).Distinct().ToList();
+        var finishers = await _db.Results
+            .Where(r => r.Status == ResultStatus.Finished && categoryIds.Contains(r.Enrolment!.CategoryId))
+            .GroupBy(r => r.Enrolment!.CategoryId)
+            .Select(g => new { CategoryId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.CategoryId, x => x.Count);
+
+        return list.Select(r =>
+        {
+            var dto = r.ToDto();
+            dto.FinishersInCategory = finishers.GetValueOrDefault(r.Enrolment!.CategoryId);
+            return dto;
+        }).ToList();
+    }
 
     private static IEnumerable<Result> Rank(IEnumerable<Result> results) => results
         .OrderBy(r => r.Enrolment!.Category!.DistanceKm)

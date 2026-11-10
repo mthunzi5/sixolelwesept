@@ -12,6 +12,7 @@ public class ResultDto
     public string ParticipantName { get; set; } = string.Empty;
     public int EventId { get; set; }
     public string EventName { get; set; } = string.Empty;
+    public DateOnly? EventDate { get; set; }
     public int CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
     public string BibNumber { get; set; } = string.Empty;
@@ -22,6 +23,9 @@ public class ResultDto
 
     public int? Position { get; set; }
     public ResultStatus Status { get; set; }
+
+    /// <summary>Number of Finished results in the same category, e.g. for "47th of 312 finishers".</summary>
+    public int FinishersInCategory { get; set; }
 }
 
 /// <summary>Finish time and position for a participant. Finished results need both; DNF or DSQ results must leave them empty.</summary>
