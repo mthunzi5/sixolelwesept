@@ -1,0 +1,94 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "My profile";
+    var user = Model.User;
+    var avatar = Display.ImageSrc(user.ProfileImageUrl);
+}
+
+<partial name="_PageHeader" model='new PageHeader("My profile", "Your personal details and account settings.", "bi-person-circle")' />
+
+<div asp-validation-summary="ModelOnly" class="alert rd-alert rd-alert-danger"></div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="rd-card rd-card-body text-center h-100">
+            @if (avatar is not null)
+            {
+                <img id="avatar-preview" src="@avatar" alt="Profile picture" class="rd-avatar rd-avatar-lg mb-3" />
+            }
+            else
+            {
+                <span class="rd-avatar rd-avatar-lg rd-avatar-initials mb-3">@Display.Initials(user.FullName)</span>
+                <img id="avatar-preview" alt="Profile picture preview" class="rd-avatar rd-avatar-lg mb-3 d-none" />
+            }
+            <h2 class="h3 mb-1">@user.FullName</h2>
+            <p class="mb-1"><span class="rd-role-pill">@user.Role</span></p>
+            <p class="text-muted small mb-4">Member since @user.CreatedAt.ToString("MMMM yyyy")</p>
+
+            <form asp-action="UploadPicture" method="post" enctype="multipart/form-data" class="text-start">
+                <label for="picture" class="form-label">Profile picture</label>
+                <input type="file" id="picture" name="picture" class="form-control mb-2" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-preview="#avatar-preview" required />
+                <div class="form-text mb-3">JPG, PNG or WebP, up to 5 MB.</div>
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-cloud-arrow-up-fill"></i> Upload picture</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="rd-card rd-card-body mb-4">
+            <h3 class="rd-card-title">Personal details</h3>
+            <form asp-action="Update" method="post" novalidate>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Profile.FullName" class="form-label"></label>
+                        <input asp-for="Profile.FullName" class="form-control" autocomplete="name" />
+                        <span asp-validation-for="Profile.FullName"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Profile.PhoneNumber" class="form-label"></label>
+                        <input asp-for="Profile.PhoneNumber" class="form-control" autocomplete="tel" />
+                        <span asp-validation-for="Profile.PhoneNumber"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input class="form-control" value="@user.Email" disabled />
+                        <div class="form-text">Your email is your login and can't be changed.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Account type</label>
+                        <input class="form-control" value="@user.Role" disabled />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-save-fill"></i> Save changes</button>
+            </form>
+        </div>
+
+        <div class="rd-card rd-card-body">
+            <h3 class="rd-card-title">Change password</h3>
+            <form asp-action="ChangePassword" method="post" novalidate>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="Password.CurrentPassword" class="form-label"></label>
+                        <input asp-for="Password.CurrentPassword" class="form-control" autocomplete="current-password" />
+                        <span asp-validation-for="Password.CurrentPassword"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Password.NewPassword" class="form-label"></label>
+                        <input asp-for="Password.NewPassword" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="Password.NewPassword"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Password.ConfirmNewPassword" class="form-label"></label>
+                        <input asp-for="Password.ConfirmNewPassword" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="Password.ConfirmNewPassword"></span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-dark mt-4"><i class="bi bi-key-fill"></i> Change password</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
