@@ -1,0 +1,109 @@
+@model EventForm
+@{
+    var isEdit = Model.EventId is not null;
+    ViewData["Title"] = isEdit ? "Edit event" : "Create event";
+    var currentBanner = Display.ImageSrc(Model.CurrentBannerUrl);
+}
+
+@if (isEdit)
+{
+    <a asp-action="Events" class="d-inline-block mb-3"><i class="bi bi-arrow-left"></i> All my events</a>
+    <ul class="nav nav-pills mb-4 gap-1">
+        <li class="nav-item"><a class="nav-link active" asp-action="Edit" asp-route-id="@Model.EventId"><i class="bi bi-pencil-square"></i> Details</a></li>
+        <li class="nav-item"><a class="nav-link" asp-action="Categories" asp-route-id="@Model.EventId"><i class="bi bi-list-ul"></i> Categories</a></li>
+        <li class="nav-item"><a class="nav-link" asp-action="Enrolments" asp-route-id="@Model.EventId"><i class="bi bi-people-fill"></i> Enrolments</a></li>
+        <li class="nav-item"><a class="nav-link" asp-action="Results" asp-route-id="@Model.EventId"><i class="bi bi-stopwatch-fill"></i> Results</a></li>
+    </ul>
+}
+
+<partial name="_PageHeader" model='new PageHeader(isEdit ? "Edit event" : "Create event", isEdit ? "Update the details participants will see." : "Fill in the details. You can add categories on the next step.", isEdit ? "bi-pencil-square" : "bi-plus-circle")' />
+
+<form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@Model.EventId" method="post" enctype="multipart/form-data" novalidate>
+    <input type="hidden" asp-for="EventId" />
+    <input type="hidden" asp-for="CurrentBannerUrl" />
+    <div asp-validation-summary="ModelOnly" class="alert rd-alert rd-alert-danger"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="rd-card rd-card-body">
+                <h3 class="rd-card-title">Event details</h3>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label asp-for="EventName" class="form-label"></label>
+                        <input asp-for="EventName" class="form-control" placeholder="e.g. Soweto 10km Challenge" />
+                        <span asp-validation-for="EventName"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Route, start time, what to bring…"></textarea>
+                        <span asp-validation-for="Description"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="EventDate" class="form-label"></label>
+                        <input asp-for="EventDate" type="date" class="form-control" />
+                        <span asp-validation-for="EventDate"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Location" class="form-label"></label>
+                        <input asp-for="Location" class="form-control" placeholder="City, Province" />
+                        <span asp-validation-for="Location"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="DistanceKm" class="form-label"></label>
+                        <input asp-for="DistanceKm" type="number" step="0.01" min="0.1" class="form-control" />
+                        <span asp-validation-for="DistanceKm"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="EventType" class="form-label"></label>
+                        <select asp-for="EventType" asp-items="Html.GetEnumSelectList<EventType>()" class="form-select">
+                            <option value="">Choose…</option>
+                        </select>
+                        <span asp-validation-for="EventType"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Status" class="form-label"></label>
+                        @if (isEdit)
+                        {
+                            <select asp-for="Status" asp-items="Html.GetEnumSelectList<EventStatus>()" class="form-select"></select>
+                        }
+                        else
+                        {
+                            <input type="hidden" asp-for="Status" />
+                            <input class="form-control" value="Scheduled" disabled />
+                            <div class="form-text">New events start as Scheduled.</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="rd-card rd-card-body">
+                <h3 class="rd-card-title">Banner image</h3>
+                <div class="rd-banner mb-3 rounded">
+                    @if (currentBanner is not null)
+                    {
+                        <img id="banner-preview" src="@currentBanner" alt="Current banner" />
+                    }
+                    else
+                    {
+                        <i class="bi bi-image"></i>
+                        <img id="banner-preview" alt="Banner preview" class="d-none" />
+                    }
+                </div>
+                <label asp-for="BannerImage" class="form-label"></label>
+                <input asp-for="BannerImage" type="file" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-preview="#banner-preview" />
+                <div class="form-text">JPG, PNG or WebP, up to 5 MB. Stored in Azure Blob Storage and shown on the event page.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save-fill"></i> @(isEdit ? "Save changes" : "Create event")</button>
+        <a asp-action="Events" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

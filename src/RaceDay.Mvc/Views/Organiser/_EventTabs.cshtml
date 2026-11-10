@@ -1,0 +1,28 @@
+@model EventDto
+@* Header and sub-navigation shared by every "manage this event" page. *@
+@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    string Active(string a) => string.Equals(action, a, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<a asp-action="Events" class="d-inline-block mb-3"><i class="bi bi-arrow-left"></i> All my events</a>
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
+    <div>
+        <div class="d-flex gap-2 align-items-center mb-1">
+            <span class="rd-type-tag"><i class="bi @Display.EventTypeIcon(Model.EventType)"></i> @Model.EventType</span>
+            <span class="rd-badge @Display.BadgeClass(Model.Status)">@Model.Status</span>
+        </div>
+        <h1 class="rd-page-title">@Model.EventName</h1>
+        <div class="rd-meta">
+            <span><i class="bi bi-calendar3"></i> @Display.Date(Model.EventDate)</span>
+            <span><i class="bi bi-geo-alt-fill"></i> @Model.Location</span>
+            <span><i class="bi bi-signpost-2-fill"></i> @Display.Km(Model.DistanceKm)</span>
+        </div>
+    </div>
+    <a asp-controller="Home" asp-action="Event" asp-route-id="@Model.EventId" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i> Public page</a>
+</div>
+<ul class="nav nav-pills mb-4 gap-1">
+    <li class="nav-item"><a class="nav-link @Active("Edit")" asp-action="Edit" asp-route-id="@Model.EventId"><i class="bi bi-pencil-square"></i> Details</a></li>
+    <li class="nav-item"><a class="nav-link @Active("Categories")@Active("AddCategory")" asp-action="Categories" asp-route-id="@Model.EventId"><i class="bi bi-list-ul"></i> Categories</a></li>
+    <li class="nav-item"><a class="nav-link @Active("Enrolments")" asp-action="Enrolments" asp-route-id="@Model.EventId"><i class="bi bi-people-fill"></i> Enrolments</a></li>
+    <li class="nav-item"><a class="nav-link @Active("Results")" asp-action="Results" asp-route-id="@Model.EventId"><i class="bi bi-stopwatch-fill"></i> Results</a></li>
+</ul>

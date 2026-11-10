@@ -1,0 +1,69 @@
+@model List<EventDto>
+@{
+    ViewData["Title"] = "My events";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <partial name="_PageHeader" model='new PageHeader("My events", "Create, edit and manage the events you organise.", "bi-calendar-event")' />
+    <a asp-action="Create" class="btn btn-primary mb-4"><i class="bi bi-plus-circle-fill"></i> Create event</a>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="rd-card">
+        <div class="rd-empty">
+            <i class="bi bi-calendar-plus"></i>
+            <h3>You haven't created any events</h3>
+            <p>Set up your first run, walk or ride in a couple of minutes.</p>
+            <a asp-action="Create" class="btn btn-primary">Create event</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="rd-card">
+        <div class="table-responsive">
+            <table class="table rd-table">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Distance</th>
+                        <th>Status</th>
+                        <th>Entries</th>
+                        <th class="text-end">Manage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ev in Model)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-controller="Home" asp-action="Event" asp-route-id="@ev.EventId" class="fw-semibold text-decoration-none" style="color: var(--rd-navy)">@ev.EventName</a>
+                                <div class="small text-muted">@ev.Location</div>
+                            </td>
+                            <td class="text-nowrap">@Display.Date(ev.EventDate)</td>
+                            <td><span class="rd-type-tag"><i class="bi @Display.EventTypeIcon(ev.EventType)"></i> @ev.EventType</span></td>
+                            <td>@Display.Km(ev.DistanceKm)</td>
+                            <td><span class="rd-badge @Display.BadgeClass(ev.Status)">@ev.Status</span></td>
+                            <td><strong>@ev.EnrolmentCount</strong></td>
+                            <td class="text-end text-nowrap">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Manage @ev.EventName">
+                                    <a asp-action="Edit" asp-route-id="@ev.EventId" class="btn btn-outline-primary" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                                    <a asp-action="Categories" asp-route-id="@ev.EventId" class="btn btn-outline-primary" title="Categories"><i class="bi bi-list-ul"></i></a>
+                                    <a asp-action="Enrolments" asp-route-id="@ev.EventId" class="btn btn-outline-primary" title="Enrolments"><i class="bi bi-people-fill"></i></a>
+                                    <a asp-action="Results" asp-route-id="@ev.EventId" class="btn btn-outline-primary" title="Results"><i class="bi bi-stopwatch-fill"></i></a>
+                                </div>
+                                <form asp-action="Delete" asp-route-id="@ev.EventId" method="post" class="d-inline" data-confirm="Delete '@ev.EventName'? This can't be undone.">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger ms-1" title="Delete"><i class="bi bi-trash3"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <p class="small text-muted mt-3"><i class="bi bi-info-circle"></i> Events that already have enrolments can't be deleted. Edit them and set the status to Cancelled instead.</p>
+}
