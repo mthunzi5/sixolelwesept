@@ -1,0 +1,86 @@
+@model List<ResultDto>
+@{
+    ViewData["Title"] = "My results";
+    var finished = Model.Where(r => r.Status == ResultStatus.Finished).ToList();
+    var best = finished.Where(r => r.Position is not null).OrderBy(r => r.Position).FirstOrDefault();
+}
+
+<partial name="_PageHeader" model='new PageHeader("My results", "Your race history across every event you have completed.", "bi-trophy-fill")' />
+
+@if (Model.Count == 0)
+{
+    <div class="rd-card">
+        <div class="rd-empty">
+            <i class="bi bi-stopwatch"></i>
+            <h3>No results yet</h3>
+            <p>Once you've raced and the organiser has captured the times, your results appear here.</p>
+            <a class="btn btn-primary" asp-controller="Participant" asp-action="MyEnrolments"><i class="bi bi-ticket-perforated"></i> My enrolments</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="rd-card rd-stat">
+                <div class="rd-stat-icon"><i class="bi bi-flag-fill"></i></div>
+                <div><div class="rd-stat-value">@Model.Count</div><div class="rd-stat-label">Races</div></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="rd-card rd-stat">
+                <div class="rd-stat-icon"><i class="bi bi-check2-circle"></i></div>
+                <div><div class="rd-stat-value">@finished.Count</div><div class="rd-stat-label">Finishes</div></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="rd-card rd-stat">
+                <div class="rd-stat-icon"><i class="bi bi-award-fill"></i></div>
+                <div>
+                    <div class="rd-stat-value">@(best?.Position is int p ? Display.Ordinal(p) : "-")</div>
+                    <div class="rd-stat-label">Best placing</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="rd-card">
+        <div class="table-responsive">
+            <table class="table rd-table">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Finish time</th>
+                        <th>Placing</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td><a asp-controller="Home" asp-action="Leaderboard" asp-route-id="@r.EventId"><strong>@r.EventName</strong></a></td>
+                            <td>@Display.Date(r.EventDate)</td>
+                            <td>@r.CategoryName</td>
+                            <td class="fw-semibold">@Display.FinishTime(r.FinishTimeSeconds)</td>
+                            <td>
+                                @if (r.Status == ResultStatus.Finished && r.Position is int pos)
+                                {
+                                    <span class="rd-position fs-5 @(pos <= 3 ? $"rd-podium-{pos}" : "")">@Display.Ordinal(pos)</span>
+                                    <span class="text-muted small">of @r.FinishersInCategory @(r.FinishersInCategory == 1 ? "finisher" : "finishers")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">@Display.Placing(r)</span>
+                                }
+                            </td>
+                            <td><span class="rd-badge @Display.BadgeClass(r.Status)">@r.Status</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
