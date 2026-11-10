@@ -9,7 +9,9 @@ using RaceDay.Api.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<RaceDayDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("RaceDayDb")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("RaceDayDb"),
+        // Retry transient connection failures, e.g. while a SQL Server container is still starting.
+        sql => sql.EnableRetryOnFailure(maxRetryCount: 10, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null)));
 
 // Azure Blob Storage for event banners and profile pictures (see Services/AzureBlobImageStorage.cs).
 builder.Services.AddSingleton<IBlobImageStorage, AzureBlobImageStorage>();
