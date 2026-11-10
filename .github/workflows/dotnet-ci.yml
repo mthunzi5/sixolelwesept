@@ -1,6 +1,6 @@
-name: Build and test API
+name: Build and test RaceDay
 
-# Runs on every push to any branch (and on pull requests), as required for Part 2.
+# Runs on every push to any branch (and on pull requests).
 on:
   push:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    name: Build and run unit tests
+    name: Build API + MVC and run unit tests
     runs-on: ubuntu-latest
 
     steps:
@@ -23,8 +23,12 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore RaceDay.sln
 
-      - name: Build
+      # The solution contains the API, the MVC web app and the tests.
+      - name: Build solution (API, MVC, tests)
         run: dotnet build RaceDay.sln --configuration Release --no-restore
+
+      - name: Publish MVC web app
+        run: dotnet publish src/RaceDay.Mvc/RaceDay.Mvc.csproj --configuration Release --no-build --output publish/web
 
       # Tests use EF Core's in-memory provider, so no SQL Server is needed on the runner.
       - name: Run unit tests
@@ -40,3 +44,21 @@ jobs:
         with:
           name: test-results
           path: TestResults/*.trx
+
+  docker:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build MVC web app image
+        run: docker build --tag raceday-web:ci src/RaceDay.Mvc
+
+      - name: Build API image
+        run: docker build --tag raceday-api:ci src/RaceDay.Api
+
+      - name: Validate docker-compose file
+        run: docker compose config --quiet
