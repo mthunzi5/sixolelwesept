@@ -1,0 +1,112 @@
+@model ResultsEntryViewModel
+@{
+    ViewData["Title"] = $"Results · {Model.Event.EventName}";
+    var captured = Model.Entrants.Count(e => e.ResultId is not null);
+    var published = Model.Event.Status == EventStatus.Completed;
+}
+
+<partial name="_EventTabs" model="Model.Event" />
+
+@if (!Model.EventHasHappened)
+{
+    <div class="alert rd-alert rd-alert-info">
+        <i class="bi bi-info-circle-fill"></i>
+        Results can be captured once the event has taken place on <strong>@Display.Date(Model.Event.EventDate)</strong>.
+    </div>
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+    <div>
+        <h2 class="h3 mb-0">Capture results</h2>
+        <p class="text-muted mb-0">@captured of @Model.Entrants.Count entrants have a result. Enter times as <code>h:mm:ss</code>.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Home" asp-action="Leaderboard" asp-route-id="@Model.Event.EventId" class="btn btn-outline-secondary"><i class="bi bi-trophy"></i> Leaderboard</a>
+        @if (published)
+        {
+            <span class="rd-badge rd-badge-success align-self-center">Published</span>
+        }
+        else
+        {
+            <form asp-action="PublishResults" asp-route-id="@Model.Event.EventId" method="post" data-confirm="Publish results and mark this event as Completed?">
+                <button type="submit" class="btn btn-dark" disabled="@(!Model.EventHasHappened || captured == 0)"><i class="bi bi-megaphone-fill"></i> Publish results</button>
+            </form>
+        }
+    </div>
+</div>
+
+@if (Model.Entrants.Count == 0)
+{
+    <div class="rd-card">
+        <div class="rd-empty">
+            <i class="bi bi-stopwatch"></i>
+            <h3>No entrants</h3>
+            <p>Nobody is enrolled in this event, so there are no results to capture.</p>
+        </div>
+    </div>
+}
+else
+{
+    foreach (var group in Model.Entrants.GroupBy(e => e.CategoryName))
+    {
+        <h3 class="h4 mt-4 mb-2">@group.Key</h3>
+        <div class="rd-card mb-3">
+            <div class="table-responsive">
+                <table class="table rd-table">
+                    <thead>
+                        <tr>
+                            <th>Bib</th>
+                            <th>Participant</th>
+                            <th style="width: 9rem;">Finish time</th>
+                            <th style="width: 7rem;">Position</th>
+                            <th style="width: 9rem;">Status</th>
+                            <th style="width: 8rem;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var en in group)
+                        {
+                            var formId = $"result-{en.EnrolmentId}";
+                            <tr>
+                                <td><span class="rd-bib">@en.BibNumber</span></td>
+                                <td>
+                                    <span class="fw-semibold">@en.ParticipantName</span>
+                                    @if (en.ResultStatus is ResultStatus rs)
+                                    {
+                                        <span class="rd-badge @Display.BadgeClass(rs) ms-1">Saved</span>
+                                    }
+                                </td>
+                                <td>
+                                    <input form="@formId" name="FinishTime" class="form-control form-control-sm" placeholder="1:05:30"
+                                           value="@(en.FinishTimeSeconds is int s ? Display.FinishTime(s) : "")"
+                                           pattern="^(\d{1,3}:)?[0-5]?\d:[0-5]\d$" title="h:mm:ss" disabled="@(!Model.EventHasHappened)" aria-label="Finish time for @en.ParticipantName" />
+                                </td>
+                                <td>
+                                    <input form="@formId" name="Position" type="number" min="1" class="form-control form-control-sm"
+                                           value="@en.Position" disabled="@(!Model.EventHasHappened)" aria-label="Position for @en.ParticipantName" />
+                                </td>
+                                <td>
+                                    <select form="@formId" name="Status" class="form-select form-select-sm" disabled="@(!Model.EventHasHappened)" aria-label="Result status for @en.ParticipantName">
+                                        @foreach (var status in Enum.GetValues<ResultStatus>())
+                                        {
+                                            <option value="@status" selected="@((en.ResultStatus ?? ResultStatus.Finished) == status)">@status</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td class="text-end">
+                                    <form id="@formId" asp-action="SaveResult" asp-route-id="@Model.Event.EventId" method="post">
+                                        <input type="hidden" name="EnrolmentId" value="@en.EnrolmentId" />
+                                        <input type="hidden" name="ResultId" value="@en.ResultId" />
+                                        <button type="submit" class="btn btn-sm @(en.ResultId is null ? "btn-primary" : "btn-outline-primary")" disabled="@(!Model.EventHasHappened)">
+                                            <i class="bi bi-save-fill"></i> @(en.ResultId is null ? "Save" : "Update")
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
