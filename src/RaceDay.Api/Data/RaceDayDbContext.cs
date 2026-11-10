@@ -34,6 +34,7 @@ public class RaceDayDbContext : DbContext
             e.Property(u => u.PasswordHash).HasMaxLength(255).IsRequired();
             e.Property(u => u.Role).HasConversion<string>().HasColumnType("varchar(20)");
             e.Property(u => u.PhoneNumber).HasMaxLength(20);
+            e.Property(u => u.ProfileImageUrl).HasMaxLength(500);
             e.Property(u => u.CreatedAt).HasColumnType("datetime").HasDefaultValueSql("GETDATE()");
         });
 
@@ -55,6 +56,7 @@ public class RaceDayDbContext : DbContext
             e.Property(ev => ev.DistanceKm).HasColumnType("decimal(5,2)");
             e.Property(ev => ev.EventType).HasConversion<string>().HasColumnType("varchar(10)");
             e.Property(ev => ev.Status).HasConversion<string>().HasColumnType("varchar(20)");
+            e.Property(ev => ev.BannerImageUrl).HasMaxLength(500);
             e.Property(ev => ev.CreatedAt).HasColumnType("datetime").HasDefaultValueSql("GETDATE()");
 
             e.HasOne(ev => ev.Organiser).WithMany(u => u.OrganisedEvents)

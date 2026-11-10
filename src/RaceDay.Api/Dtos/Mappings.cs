@@ -12,6 +12,7 @@ public static class Mappings
         Email = u.Email,
         Role = u.Role,
         PhoneNumber = u.PhoneNumber,
+        ProfileImageUrl = u.ProfileImageUrl,
         CreatedAt = u.CreatedAt
     };
 
@@ -43,6 +44,7 @@ public static class Mappings
         dto.DistanceKm = e.DistanceKm;
         dto.EventType = e.EventType;
         dto.Status = e.Status;
+        dto.BannerImageUrl = e.BannerImageUrl;
         return dto;
     }
 

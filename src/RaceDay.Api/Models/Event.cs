@@ -17,6 +17,7 @@ public class Event
     public EventType EventType { get; set; }
 
     public EventStatus Status { get; set; } = EventStatus.Scheduled;
+    public string? BannerImageUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public User? Organiser { get; set; }

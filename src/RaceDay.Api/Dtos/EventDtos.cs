@@ -16,6 +16,7 @@ public class EventDto
     public decimal DistanceKm { get; set; }
     public EventType EventType { get; set; }
     public EventStatus Status { get; set; }
+    public string? BannerImageUrl { get; set; }
 }
 
 /// <summary>An event together with its categories.</summary>

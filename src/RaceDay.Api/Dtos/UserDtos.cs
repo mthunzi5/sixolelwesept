@@ -11,6 +11,7 @@ public class UserDto
     public string Email { get; set; } = string.Empty;
     public UserRole Role { get; set; }
     public string? PhoneNumber { get; set; }
+    public string? ProfileImageUrl { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

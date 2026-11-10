@@ -12,6 +12,7 @@ public class User
 
     public UserRole Role { get; set; }
     public string? PhoneNumber { get; set; }
+    public string? ProfileImageUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Event> OrganisedEvents { get; set; } = new List<Event>();
