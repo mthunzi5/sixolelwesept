@@ -1,0 +1,91 @@
+@model List<EnrolmentDto>
+@{
+    ViewData["Title"] = "My enrolments";
+    var active = Model.Count(e => e.Status != EnrolmentStatus.Withdrawn);
+    var activeText = active == 1 ? "1 active entry" : $"{active} active entries";
+}
+
+<partial name="_PageHeader" model='new PageHeader("My enrolments", "Every event you have entered and where your entry stands.", "bi-ticket-perforated")' />
+
+<div class="d-flex flex-wrap gap-3 mb-4 small">
+    <span><span class="rd-badge rd-badge-success">Confirmed</span> place secured</span>
+    <span><span class="rd-badge rd-badge-warning">Pending</span> entry fee still due</span>
+    <span><span class="rd-badge rd-badge-muted">Withdrawn</span> no longer taking part</span>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="rd-card">
+        <div class="rd-empty">
+            <i class="bi bi-ticket-perforated"></i>
+            <h3>No enrolments yet</h3>
+            <p>Find an event you like and pick a category to enter.</p>
+            <a class="btn btn-primary" asp-controller="Home" asp-action="Index"><i class="bi bi-flag"></i> Browse events</a>
+        </div>
+    </div>
+}
+else
+{
+    <p class="text-muted">@activeText</p>
+    <div class="row g-4">
+        @foreach (var en in Model)
+        {
+            var needsPayment = en.Status == EnrolmentStatus.Pending && en.EntryFee > 0 && en.PaymentStatus != PaymentStatus.Paid;
+            var canWithdraw = en.Status != EnrolmentStatus.Withdrawn && en.ResultId is null;
+            <div class="col-lg-6">
+                <div class="rd-card rd-card-body h-100 @(en.Status == EnrolmentStatus.Withdrawn ? "opacity-75" : "")">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <h3 class="h4 mb-1"><a asp-controller="Home" asp-action="Event" asp-route-id="@en.EventId" class="text-decoration-none" style="color: var(--rd-navy)">@en.EventName</a></h3>
+                            <div class="rd-meta">
+                                <span><i class="bi bi-calendar3"></i> @Display.Date(en.EventDate)</span>
+                                <span><i class="bi bi-list-ul"></i> @en.CategoryName</span>
+                            </div>
+                        </div>
+                        <span class="rd-badge @Display.BadgeClass(en.Status)">@en.Status</span>
+                    </div>
+
+                    <div class="d-flex flex-wrap align-items-center gap-3 my-3">
+                        <span>Bib <span class="rd-bib">@en.BibNumber</span></span>
+                        <span class="text-muted small">Entry fee: @Display.Money(en.EntryFee)</span>
+                        @if (en.PaymentStatus is PaymentStatus ps)
+                        {
+                            <span class="rd-badge @Display.BadgeClass(ps)">Payment @ps</span>
+                        }
+                        @if (en.ResultStatus is ResultStatus rs)
+                        {
+                            <a asp-action="MyResults" class="rd-badge @Display.BadgeClass(rs) text-decoration-none">Result: @rs</a>
+                        }
+                    </div>
+
+                    @if (needsPayment || canWithdraw)
+                    {
+                        <div class="d-flex flex-wrap gap-2 align-items-center border-top pt-3">
+                            @if (needsPayment)
+                            {
+                                <form asp-action="Pay" method="post" class="d-flex gap-2 flex-wrap">
+                                    <input type="hidden" name="EnrolmentId" value="@en.EnrolmentId" />
+                                    <input type="hidden" name="Amount" value="@en.EntryFee.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                                    <select name="PaymentMethod" class="form-select form-select-sm" style="width:auto" required aria-label="Payment method">
+                                        <option value="">Pay with…</option>
+                                        @foreach (var method in Enum.GetValues<PaymentMethod>())
+                                        {
+                                            <option value="@method">@method</option>
+                                        }
+                                    </select>
+                                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-credit-card-fill"></i> Pay @Display.Money(en.EntryFee)</button>
+                                </form>
+                            }
+                            @if (canWithdraw)
+                            {
+                                <form asp-action="Withdraw" asp-route-id="@en.EnrolmentId" method="post" class="ms-auto" data-confirm="Withdraw from @en.EventName? Your place will be released.">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i> Withdraw</button>
+                                </form>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
