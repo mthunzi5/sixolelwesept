@@ -1,0 +1,80 @@
+@model RegisterForm
+@{
+    ViewData["Title"] = "Sign up";
+}
+
+<div class="rd-form-narrow" style="max-width: 36rem;">
+    <div class="rd-card">
+        <div class="rd-card-body p-4 p-md-5">
+            <div class="text-center mb-4">
+                <h1 class="rd-page-title justify-content-center"><i class="bi bi-flag-fill"></i> Join RaceDay</h1>
+                <p class="rd-page-subtitle">Organise races or line up for your next one.</p>
+            </div>
+
+            <form asp-action="Register" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert rd-alert rd-alert-danger"></div>
+
+                <div class="mb-4">
+                    <label class="form-label">@Html.DisplayNameFor(m => m.Role)</label>
+                    <div class="rd-role-choice">
+                        <div class="position-relative">
+                            <input type="radio" asp-for="Role" value="@UserRole.Participant" id="role-participant" />
+                            <label for="role-participant">
+                                <i class="bi bi-person-running"></i>
+                                <strong>Participant</strong>
+                                <small>Enter events and track your results</small>
+                            </label>
+                        </div>
+                        <div class="position-relative">
+                            <input type="radio" asp-for="Role" value="@UserRole.Organiser" id="role-organiser" />
+                            <label for="role-organiser">
+                                <i class="bi bi-megaphone-fill"></i>
+                                <strong>Organiser</strong>
+                                <small>Create events and capture results</small>
+                            </label>
+                        </div>
+                    </div>
+                    <span asp-validation-for="Role"></span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label asp-for="FullName" class="form-label"></label>
+                        <input asp-for="FullName" class="form-control" autocomplete="name" />
+                        <span asp-validation-for="FullName"></span>
+                    </div>
+                    <div class="col-md-7">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" autocomplete="email" />
+                        <span asp-validation-for="Email"></span>
+                    </div>
+                    <div class="col-md-5">
+                        <label asp-for="PhoneNumber" class="form-label"></label>
+                        <input asp-for="PhoneNumber" class="form-control" autocomplete="tel" placeholder="Optional" />
+                        <span asp-validation-for="PhoneNumber"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label"></label>
+                        <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="Password"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmPassword" class="form-label"></label>
+                        <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="ConfirmPassword"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 mt-4"><i class="bi bi-person-plus-fill"></i> Create account</button>
+            </form>
+
+            <p class="text-center mt-4 mb-0 text-muted">
+                Already registered? <a asp-action="Login">Log in</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
