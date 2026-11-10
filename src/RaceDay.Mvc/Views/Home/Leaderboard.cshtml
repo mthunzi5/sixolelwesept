@@ -1,0 +1,53 @@
+@model LeaderboardViewModel
+@{
+    ViewData["Title"] = $"{Model.Event.EventName} results";
+    var byCategory = Model.Results.GroupBy(r => r.CategoryName);
+}
+
+<a asp-action="Event" asp-route-id="@Model.Event.EventId" class="d-inline-block mb-3"><i class="bi bi-arrow-left"></i> Back to event</a>
+<partial name="_PageHeader" model='new PageHeader($"{Model.Event.EventName} results", Display.Date(Model.Event.EventDate) + " · " + Model.Event.Location, "bi-trophy-fill")' />
+
+@if (Model.Results.Count == 0)
+{
+    <div class="rd-card">
+        <div class="rd-empty">
+            <i class="bi bi-stopwatch"></i>
+            <h3>No results yet</h3>
+            <p>Results appear here once the organiser has captured them.</p>
+        </div>
+    </div>
+}
+
+@foreach (var group in byCategory)
+{
+    <h2 class="h3 mt-4 mb-3">@group.Key</h2>
+    <div class="rd-card mb-4">
+        <div class="table-responsive">
+            <table class="table rd-table">
+                <thead>
+                    <tr>
+                        <th>Pos</th>
+                        <th>Participant</th>
+                        <th>Bib</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in group)
+                    {
+                        <tr>
+                            <td class="rd-position @(r.Position is >= 1 and <= 3 ? $"rd-podium-{r.Position}" : "")">
+                                @(r.Position is int p ? Display.Ordinal(p) : "-")
+                            </td>
+                            <td>@r.ParticipantName</td>
+                            <td><span class="rd-bib">@r.BibNumber</span></td>
+                            <td>@Display.FinishTime(r.FinishTimeSeconds)</td>
+                            <td><span class="rd-badge @Display.BadgeClass(r.Status)">@r.Status</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

@@ -1,0 +1,159 @@
+@model EventDetailsViewModel
+@{
+    var ev = Model.Event;
+    ViewData["Title"] = ev.EventName;
+    var banner = Display.ImageSrc(ev.BannerImageUrl);
+    var isParticipant = Context.Session.IsParticipant();
+    var openForEntries = ev.Status == EventStatus.Scheduled;
+}
+
+<div class="rd-banner rd-banner-lg mb-4">
+    <span class="rd-date-chip fs-5">@Display.Date(ev.EventDate)</span>
+    @if (banner is not null)
+    {
+        <img src="@banner" alt="@ev.EventName banner" />
+    }
+    else
+    {
+        <i class="bi @Display.EventTypeIcon(ev.EventType)"></i>
+    }
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <span class="rd-type-tag"><i class="bi @Display.EventTypeIcon(ev.EventType)"></i> @ev.EventType</span>
+            <span class="rd-badge @Display.BadgeClass(ev.Status)">@ev.Status</span>
+        </div>
+        <h1 class="rd-page-title mb-3">@ev.EventName</h1>
+        <div class="rd-meta fs-6 mb-4">
+            <span><i class="bi bi-calendar3"></i> @Display.Date(ev.EventDate)</span>
+            <span><i class="bi bi-geo-alt-fill"></i> @ev.Location</span>
+            <span><i class="bi bi-signpost-2-fill"></i> @Display.Km(ev.DistanceKm)</span>
+            <span><i class="bi bi-person-badge-fill"></i> Organised by @ev.OrganiserName</span>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(ev.Description))
+        {
+            <p class="lead">@ev.Description</p>
+        }
+
+        <h2 class="h3 mt-4 mb-3">Categories</h2>
+        @if (ev.Categories.Count == 0)
+        {
+            <div class="rd-card"><div class="rd-empty py-4"><i class="bi bi-list-ul"></i><p class="mb-0">Categories haven't been announced yet.</p></div></div>
+        }
+        else
+        {
+            <div class="rd-card">
+                <div class="table-responsive">
+                    <table class="table rd-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Distance</th>
+                                <th>Entry fee</th>
+                                <th>Spots</th>
+                                @if (isParticipant && openForEntries && Model.MyEnrolment is null)
+                                {
+                                    <th class="text-end">Enter</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in ev.Categories)
+                            {
+                                var spotsLeft = c.MaxParticipants - c.SpotsTaken;
+                                <tr>
+                                    <td>
+                                        <strong>@c.CategoryName</strong>
+                                        @if (c.CategoryType == CategoryType.Age)
+                                        {
+                                            <div class="small text-muted">
+                                                Age @(c.MinAge is int min && c.MaxAge is int max ? $"{min}–{max}" : c.MaxAge is int m ? $"up to {m}" : $"{c.MinAge}+")
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>@Display.Km(c.DistanceKm)</td>
+                                    <td>@Display.Money(c.EntryFee)</td>
+                                    <td>
+                                        @if (spotsLeft <= 0)
+                                        {
+                                            <span class="rd-badge rd-badge-danger">Full</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@spotsLeft left</span> <span class="text-muted small">of @c.MaxParticipants</span>
+                                        }
+                                    </td>
+                                    @if (isParticipant && openForEntries && Model.MyEnrolment is null)
+                                    {
+                                        <td class="text-end">
+                                            <form asp-controller="Participant" asp-action="Enrol" method="post" class="d-inline"
+                                                  data-confirm="Enrol in @c.CategoryName for @Display.Money(c.EntryFee)?">
+                                                <input type="hidden" name="categoryId" value="@c.CategoryId" />
+                                                <input type="hidden" name="eventId" value="@ev.EventId" />
+                                                <button type="submit" class="btn btn-primary btn-sm" disabled="@(spotsLeft <= 0)">
+                                                    <i class="bi bi-check2-circle"></i> Enrol
+                                                </button>
+                                            </form>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <div class="rd-card rd-card-body">
+            @if (Model.IsOwner)
+            {
+                <h3 class="rd-card-title">Manage your event</h3>
+                <div class="d-grid gap-2">
+                    <a class="btn btn-primary" asp-controller="Organiser" asp-action="Edit" asp-route-id="@ev.EventId"><i class="bi bi-pencil-square"></i> Edit event</a>
+                    <a class="btn btn-outline-primary" asp-controller="Organiser" asp-action="Categories" asp-route-id="@ev.EventId"><i class="bi bi-list-ul"></i> Categories</a>
+                    <a class="btn btn-outline-primary" asp-controller="Organiser" asp-action="Enrolments" asp-route-id="@ev.EventId"><i class="bi bi-people-fill"></i> Enrolments (@ev.EnrolmentCount)</a>
+                    <a class="btn btn-outline-primary" asp-controller="Organiser" asp-action="Results" asp-route-id="@ev.EventId"><i class="bi bi-stopwatch-fill"></i> Enter results</a>
+                </div>
+            }
+            else if (Model.MyEnrolment is EnrolmentDto mine)
+            {
+                <h3 class="rd-card-title">You're in!</h3>
+                <p class="mb-2">Category: <strong>@mine.CategoryName</strong></p>
+                <p class="mb-2">Bib: <span class="rd-bib">@mine.BibNumber</span></p>
+                <p class="mb-3">Status: <span class="rd-badge @Display.BadgeClass(mine.Status)">@mine.Status</span></p>
+                <a class="btn btn-primary w-100" asp-controller="Participant" asp-action="MyEnrolments"><i class="bi bi-ticket-perforated"></i> View my enrolments</a>
+            }
+            else if (isParticipant)
+            {
+                <h3 class="rd-card-title">Ready to race?</h3>
+                <p class="text-muted mb-0">
+                    @(openForEntries ? "Pick a category on the left and press Enrol. Your entry is recorded immediately." : "This event isn't taking entries any more.")
+                </p>
+            }
+            else if (!Context.Session.IsSignedIn())
+            {
+                <h3 class="rd-card-title">Want to take part?</h3>
+                <p class="text-muted">Log in or create a free Participant account to enrol.</p>
+                <div class="d-grid gap-2">
+                    <a class="btn btn-primary" asp-controller="Auth" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Log in to enrol</a>
+                    <a class="btn btn-outline-primary" asp-controller="Auth" asp-action="Register">Create an account</a>
+                </div>
+            }
+            else
+            {
+                <h3 class="rd-card-title">Organiser view</h3>
+                <p class="text-muted mb-0">Only Participants can enrol in events.</p>
+            }
+
+            @if (ev.Status == EventStatus.Completed || ev.EventDate <= DateOnly.FromDateTime(DateTime.Today))
+            {
+                <hr />
+                <a class="btn btn-dark w-100" asp-action="Leaderboard" asp-route-id="@ev.EventId"><i class="bi bi-trophy-fill"></i> View results</a>
+            }
+        </div>
+    </div>
+</div>

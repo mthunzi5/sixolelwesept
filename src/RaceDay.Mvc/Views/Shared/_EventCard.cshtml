@@ -1,0 +1,36 @@
+@model EventDto
+@{
+    var banner = Display.ImageSrc(Model.BannerImageUrl);
+}
+<div class="rd-card rd-event-card">
+    <a asp-controller="Home" asp-action="Event" asp-route-id="@Model.EventId" class="rd-banner text-decoration-none" aria-label="@Model.EventName">
+        <span class="rd-date-chip">@Display.ShortDate(Model.EventDate)</span>
+        @if (banner is not null)
+        {
+            <img src="@banner" alt="" loading="lazy" />
+        }
+        else
+        {
+            <i class="bi @Display.EventTypeIcon(Model.EventType)"></i>
+        }
+    </a>
+    <div class="rd-card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="rd-type-tag"><i class="bi @Display.EventTypeIcon(Model.EventType)"></i> @Model.EventType</span>
+            <span class="rd-badge @Display.BadgeClass(Model.Status)">@Model.Status</span>
+        </div>
+        <h3><a asp-controller="Home" asp-action="Event" asp-route-id="@Model.EventId">@Model.EventName</a></h3>
+        <div class="rd-meta mb-3">
+            <span><i class="bi bi-calendar3"></i> @Display.Date(Model.EventDate)</span>
+            <span><i class="bi bi-geo-alt-fill"></i> @Model.Location</span>
+            <span><i class="bi bi-signpost-2-fill"></i> @Display.Km(Model.DistanceKm)</span>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p class="text-muted small mb-3">@(Model.Description.Length > 110 ? Model.Description[..110] + "…" : Model.Description)</p>
+        }
+        <a asp-controller="Home" asp-action="Event" asp-route-id="@Model.EventId" class="btn btn-outline-primary mt-auto">
+            View event <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+</div>
